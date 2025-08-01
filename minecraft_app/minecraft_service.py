@@ -429,15 +429,137 @@ def send_success_messages(rcon, username, rank_name, is_temporary, gifted_by=Non
         import traceback
         logger.error(f"❌ Traceback: {traceback.format_exc()}")
 
-def give_store_item_to_player(username, item_name, quantity=1):
+# Dans minecraft_app/minecraft_service.py - Ajoutez cette fonction
+
+def give_pet_to_player(username, pet_permission):
+    """
+    Donne une permission de pet à un joueur via LuckPerms
+    VERSION CORRIGÉE avec logs détaillés
+    
+    Args:
+        username: Le pseudo Minecraft du joueur
+        pet_permission: La permission du pet (ex: advancedpets.pet.cheval)
+    
+    Returns:
+        bool: True si la permission a été accordée avec succès
+    """
+    if not username or not pet_permission:
+        logger.error("❌ Cannot give pet permission: Missing username or permission")
+        return False
+    
+    logger.info(f"🐾 DÉBUT Attribution de la permission pet {pet_permission} à {username}")
+    
+    try:
+        with rcon_connection() as rcon:
+            # ✅ CORRECTION 4 : Extraire le nom du pet pour les messages
+            pet_name = pet_permission.replace('advancedpets.pet.', '').title()
+            logger.info(f"🦄 Nom du pet calculé: '{pet_name}' depuis permission '{pet_permission}'")
+            
+            # Commande LuckPerms pour donner la permission
+            lp_command = f"lp user {username} permission set {pet_permission} true"
+            
+            logger.info(f"🔧 Commande LuckPerms pet: {lp_command}")
+            try:
+                lp_response = rcon.command(lp_command)
+                logger.info(f"📝 Réponse LuckPerms pet: '{lp_response}'")
+                
+                # Attendre un peu pour que LuckPerms traite la commande
+                time.sleep(1)
+                
+                # ✅ CORRECTION 5 : Messages corrigés avec variables correctes
+                success_message = f'tellraw {username} ["",{{"text":"🐾 COMPAGNON DÉBLOQUÉ ! 🐾","color":"gold","bold":true}},{{"text":"\\n\\n"}},{{"text":"✅ Nouveau compagnon disponible:","color":"green"}},{{"text":"\\n"}},{{"text":"🦄 {pet_name}","color":"yellow","bold":true}},{{"text":"\\n\\n"}},{{"text":"💡 Utilisez /pets pour l\'équiper !","color":"aqua"}},{{"text":"\\n"}},{{"text":"🎉 Amusez-vous bien ! 🎉","color":"green","bold":true}}]'
+                
+                logger.info(f"📢 Envoi message personnel à {username}")
+                rcon.command(success_message)
+                
+                # Broadcast public
+                public_message = f'tellraw @a ["",{{"text":"🐾 [BOUTIQUE] ","color":"purple","bold":true}},{{"text":"{username} ","color":"yellow","bold":true}},{{"text":"vient d\'adopter un ","color":"white"}},{{"text":"{pet_name}","color":"green","bold":true}},{{"text":" ! 🎉","color":"gold"}}]'
+                
+                logger.info("📢 Envoi broadcast public")
+                rcon.command(public_message)
+                
+                # Son de célébration
+                try:
+                    pet_sound = f"execute at {username} run playsound minecraft:entity.cat.purr master {username} ~ ~ ~ 1 1.5"
+                    rcon.command(pet_sound)
+                    
+                    global_sound = "playsound minecraft:entity.experience_orb.pickup master @a ~ ~ ~ 0.2 1.8"
+                    rcon.command(global_sound)
+                    
+                    logger.info("🔊 Sons de pet joués")
+                except Exception as sound_error:
+                    logger.warning(f"⚠️ Sons de pet non joués: {sound_error}")
+                
+                logger.info(f"✅ Permission pet {pet_permission} attribuée avec succès à {username}")
+                return True
+                
+            except Exception as e:
+                logger.warning(f"⚠️ Commande LuckPerms pet échouée: {e}")
+                
+                # ✅ CORRECTION 6 : Mode admin avec variables corrigées
+                admin_notification = f'tellraw @a[permission=luckperms.user.permission.set] ["",{{"text":"\\n"}},{{"text":"🐾 [COMPAGNON ADMIN] 🐾","color":"purple","bold":true}},{{"text":"\\n"}},{{"text":"Attribution de pet requise:","color":"yellow"}},{{"text":"\\n"}},{{"text":"👤 Joueur: ","color":"white"}},{{"text":"{username}","color":"green","bold":true}},{{"text":"\\n"}},{{"text":"🦄 Pet: ","color":"white"}},{{"text":"{pet_name}","color":"purple","bold":true}},{{"text":"\\n"}},{{"text":"🔧 Permission: ","color":"white"}},{{"text":"{pet_permission}","color":"aqua"}},{{"text":"\\n"}},{{"text":"💰 Achat payé et confirmé ✅","color":"green"}},{{"text":"\\n\\n"}},{{"text":"🔧 Cliquez pour attribuer: ","color":"gray"}},{{"text":"[EXÉCUTER MAINTENANT]","color":"aqua","bold":true,"underlined":true,"clickEvent":{{"action":"run_command","value":"{lp_command}"}},"hoverEvent":{{"action":"show_text","value":"Cliquez pour exécuter:\\n{lp_command}"}}}}]'
+                
+                logger.info("📢 Envoi notification admin pet")
+                rcon.command(admin_notification)
+                
+                # Message au joueur en cas d'échec de l'attribution automatique
+                fallback_msg = f'tellraw {username} ["",{{"text":"🐾 COMPAGNON ACHETÉ ! 🐾","color":"gold","bold":true}},{{"text":"\\n"}},{{"text":"Votre {pet_name} a été acheté mais","color":"yellow"}},{{"text":"\\n"}},{{"text":"l\'attribution nécessite une intervention.","color":"yellow"}},{{"text":"\\n"}},{{"text":"Un admin va vous aider !","color":"green"}},{{"text":"\\n"}},{{"text":"Merci pour votre patience 💙","color":"aqua"}}]'
+                
+                rcon.command(fallback_msg)
+                logger.info("📢 Message de fallback envoyé au joueur")
+                
+                return True  # On considère ça comme un succès car l'admin peut faire l'attribution
+                
+    except Exception as e:
+        logger.error(f"❌ Erreur critique lors de l'attribution du pet: {str(e)}")
+        
+        # Message de fallback d'urgence
+        try:
+            with rcon_connection() as rcon:
+                emergency_message = f'tellraw {username} ["",{{"text":"⚠️ COMPAGNON ACHETÉ ⚠️","color":"gold","bold":true}},{{"text":"\\n"}},{{"text":"Votre compagnon a été acheté mais","color":"yellow"}},{{"text":"\\n"}},{{"text":"l\'attribution nécessite une intervention.","color":"yellow"}},{{"text":"\\n"}},{{"text":"Un admin va vous aider !","color":"green"}},{{"text":"\\n"}},{{"text":"Merci pour votre patience 💙","color":"aqua"}}]'
+                rcon.command(emergency_message)
+                logger.info("🚨 Message d'urgence envoyé")
+        except:
+            logger.error("❌ Impossible d'envoyer le message de fallback pet")
+        
+        return False
+
+def give_store_item_to_player(username, item_name, quantity=1, store_item=None):
     """
     Don d'objet optimisé pour H2 avec excellent feedback utilisateur.
+    Maintenant inclut le support des pets/compagnons avec correction des bugs.
     """
     if not username:
         logger.error("Cannot give item: No Minecraft username provided")
         return False
     
-    # Mappings des objets de la boutique
+    logger.info(f"🎁 DÉBUT Attribution objet: {quantity}x {item_name} à {username}")
+    
+    # ✅ CORRECTION 1 : Vérifier si c'est un compagnon AVANT de continuer
+    if store_item:
+        logger.info(f"🔍 Objet détecté: {store_item.name}, catégorie: {store_item.category}")
+        
+        if store_item.category == 'companion':
+            logger.info(f"🐾 C'est un compagnon ! pet_permission configuré: '{store_item.pet_permission}'")
+            
+            # ✅ CORRECTION 2 : Utiliser directement la méthode get_pet_permission() au lieu de pet_permission
+            pet_permission = store_item.get_pet_permission()
+            logger.info(f"🔧 Permission calculée: '{pet_permission}'")
+            
+            if pet_permission:
+                logger.info(f"🚀 Redirection vers give_pet_to_player pour {username}")
+                success = give_pet_to_player(username, pet_permission)
+                logger.info(f"✅ Résultat give_pet_to_player: {success}")
+                return success
+            else:
+                logger.error(f"❌ Impossible de calculer la permission pet pour {store_item.name}")
+                return False
+        else:
+            logger.info(f"📦 Objet normal (catégorie: {store_item.category}), traitement standard")
+    else:
+        logger.warning("⚠️ Aucun objet store_item fourni, traitement par nom seulement")
+    
+    # Code existant pour les autres objets...
     item_command_templates = {
         # Coffres CrazyCrates
         'Coffre d\'Argent': 'cc give physical argentcrate {1} {0}',
@@ -465,10 +587,10 @@ def give_store_item_to_player(username, item_name, quantity=1):
     }
     
     if item_name not in item_command_templates:
-        logger.error(f"Objet de boutique inconnu: {item_name}")
+        logger.error(f"❌ Objet de boutique inconnu: {item_name}")
         return False
     
-    logger.info(f"Don d'objet boutique: {quantity}x {item_name} à {username}")
+    logger.info(f"📦 Traitement objet normal: {quantity}x {item_name} à {username}")
     
     try:
         with rcon_connection() as rcon:
@@ -486,13 +608,13 @@ def give_store_item_to_player(username, item_name, quantity=1):
             
             # Don d'objet normal
             command = item_command_templates[item_name].format(username, quantity)
-            logger.info(f"Commande d'objet: {command}")
+            logger.info(f"🔧 Commande d'objet: {command}")
             
             try:
                 response = rcon.command(command)
-                logger.info(f"Réponse commande: '{response}'")
+                logger.info(f"📝 Réponse commande: '{response}'")
             except Exception as e:
-                logger.warning(f"Commande d'objet silencieuse: {e}")
+                logger.warning(f"⚠️ Commande d'objet silencieuse: {e}")
             
             # Messages de confirmation
             quantity_text = f"{quantity}x " if quantity > 1 else ""
@@ -518,7 +640,7 @@ def give_store_item_to_player(username, item_name, quantity=1):
             return True
             
     except Exception as e:
-        logger.error(f"Erreur don d'objet: {str(e)}")
+        logger.error(f"❌ Erreur don d'objet: {str(e)}")
         
         # Message d'erreur au joueur
         try:
