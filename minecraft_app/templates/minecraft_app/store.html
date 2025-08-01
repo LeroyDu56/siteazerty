@@ -253,24 +253,35 @@
                 {% for item in store_items %}
                 <div class="treasure-card" data-category="{{ item.category }}">
                     <div class="treasure-image">
-                        {% if item.category == 'companion' and item.pet_image %}
-                            <!-- Image spéciale pour les compagnons -->
-                            <img src="{% static 'images/pets/' %}{{ item.pet_image }}" alt="{{ item.name }}" class="pet-preview-image">
-                            <!-- Bouton pour prévisualisation en grand -->
-                            <button class="pet-preview-btn" data-pet-name="{{ item.name }}" data-pet-image="{{ item.pet_image }}">
-                                <i class="fas fa-eye"></i>
-                            </button>
+                        {% if item.category == 'companion' %}
+                            {% if item.pet_image %}
+                                <!-- Image spéciale pour les compagnons -->
+                                <img src="{% static 'images/pets/' %}{{ item.pet_image }}" 
+                                    alt="{{ item.name }}" 
+                                    class="pet-preview-image">
+                                
+                                <!-- Bouton seulement si l'image existe -->
+                                <button class="pet-preview-btn" 
+                                        data-pet-name="{{ item.name }}" 
+                                        data-pet-image="{{ item.pet_image }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            {% else %}
+                                <!-- Placeholder pour compagnon sans image -->
+                                <div class="treasure-placeholder" style="background-color: {{ item.color_code }}">
+                                    <i class="fas fa-paw"></i>
+                                    <div style="font-size: 0.7rem; margin-top: 5px;">Aperçu bientôt disponible</div>
+                                </div>
+                                <!-- Pas de bouton de prévisualisation si pas d'image -->
+                            {% endif %}
+                            
                         {% elif item.image %}
                             <!-- Image normale pour les autres objets -->
                             <img src="{{ item.image }}" alt="{{ item.name }}">
                         {% else %}
                             <!-- Placeholder par défaut -->
                             <div class="treasure-placeholder" style="background-color: {{ item.color_code }}">
-                                {% if item.category == 'companion' %}
-                                    <i class="fas fa-paw"></i>
-                                {% else %}
-                                    <i class="fas fa-gift"></i>
-                                {% endif %}
+                                <i class="fas fa-gift"></i>
                             </div>
                         {% endif %}
                     </div>
@@ -586,9 +597,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 <div class="pet-preview-image-container">
                     <img src="/static/images/pets/${petImage}" 
-                         alt="${petName}" 
-                         class="pet-preview-large-image"
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        alt="${petName}" 
+                        class="pet-preview-large-image"
+                        onerror="console.log('Erreur modal:', this.src); this.style.display='none'; this.nextElementSibling.style.display='block';">
                     <div style="display: none; padding: 40px; text-align: center; color: #999;">
                         <i class="fas fa-image" style="font-size: 3rem; margin-bottom: 15px;"></i>
                         <p>Image non disponible</p>

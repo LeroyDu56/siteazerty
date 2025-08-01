@@ -1681,12 +1681,11 @@
     transform: scale(1.05);
 }
 
-/* Bouton de prévisualisation */
 .pet-preview-btn {
     position: absolute;
     top: 10px;
     right: 10px;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(155, 89, 182, 0.9); /* Couleur violette pour les compagnons */
     color: white;
     border: none;
     border-radius: 50%;
@@ -1697,18 +1696,22 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    opacity: 0;
-    transform: translateY(-10px);
+    /* ✅ CHANGEMENT : Rendre visible par défaut */
+    opacity: 1;
+    transform: translateY(0);
+    z-index: 3;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .treasure-card[data-category="companion"]:hover .pet-preview-btn {
-    opacity: 1;
-    transform: translateY(0);
+    transform: scale(1.15);
+    box-shadow: 0 6px 16px rgba(155, 89, 182, 0.8);
 }
 
 .pet-preview-btn:hover {
-    background: rgba(155, 89, 182, 0.9);
+    background: rgba(155, 89, 182, 1);
     transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(155, 89, 182, 0.6);
 }
 
 /* Modal de prévisualisation */
