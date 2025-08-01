@@ -1664,7 +1664,167 @@
     transform: translateX(5px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
+.treasure-card[data-category="companion"] .treasure-image {
+    position: relative;
+    overflow: hidden;
+}
 
+.pet-preview-image {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+}
+
+.treasure-card[data-category="companion"]:hover .pet-preview-image {
+    transform: scale(1.05);
+}
+
+/* Bouton de prévisualisation */
+.pet-preview-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+.treasure-card[data-category="companion"]:hover .pet-preview-btn {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.pet-preview-btn:hover {
+    background: rgba(155, 89, 182, 0.9);
+    transform: scale(1.1);
+}
+
+/* Modal de prévisualisation */
+.pet-preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.pet-preview-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.pet-preview-content {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+}
+
+.pet-preview-modal.active .pet-preview-content {
+    transform: scale(1);
+}
+
+.pet-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.pet-preview-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #9b59b6;
+    margin: 0;
+}
+
+.pet-preview-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #666;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.pet-preview-close:hover {
+    background: #f0f0f0;
+    color: #e74c3c;
+}
+
+.pet-preview-image-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.pet-preview-large-image {
+    max-width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.pet-preview-info {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+}
+
+/* Animation spéciale pour les compagnons */
+.treasure-card[data-category="companion"]:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(155, 89, 182, 0.3);
+}
+
+/* Badge spécial pour les compagnons */
+.treasure-card[data-category="companion"]::after {
+    content: "🐾";
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 3px 10px rgba(155, 89, 182, 0.4);
+    z-index: 2;
+}
 .faq-question {
     padding: 20px 25px;
     cursor: pointer;

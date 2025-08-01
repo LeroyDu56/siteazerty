@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import TownyServer, Nation, Town, StaffMember, Rank, ServerRule, DynamicMapPoint, UserProfile, UserPurchase, StoreItem, CartItem, StoreItemPurchase, UserSubscription, PromoCode, PromoCodeUsage,BundlePurchase,Bundle,BundleItem
 
 # Basic admin registration for existing models
@@ -74,7 +75,7 @@ admin.site.register(StoreItemPurchase, StoreItemPurchaseAdmin)
 
 # New admin configuration for StoreItem
 class StoreItemAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'price', 'quantity', 'color_code', 'get_pet_permission_display')
+    list_display = ('name', 'category', 'price', 'quantity', 'color_code', 'get_pet_permission_display', 'get_pet_image_preview')
     list_filter = ('category',)
     search_fields = ('name', 'description', 'pet_permission')
     
@@ -89,8 +90,8 @@ class StoreItemAdmin(admin.ModelAdmin):
             'fields': ('category', 'quantity')
         }),
         ('Configuration Compagnon', {
-            'fields': ('pet_permission',),
-            'description': 'Pour les compagnons seulement: entrez le nom du pet (ex: dragon, chat, loup)',
+            'fields': ('pet_permission', 'pet_image'),
+            'description': 'Pour les compagnons seulement: entrez le nom du pet et le nom du fichier image',
             'classes': ('collapse',)
         }),
     )
@@ -101,6 +102,17 @@ class StoreItemAdmin(admin.ModelAdmin):
             return f"advancedpets.pet.{obj.pet_permission.lower()}"
         return "-"
     get_pet_permission_display.short_description = 'Permission Pet'
+    
+    def get_pet_image_preview(self, obj):
+        """Affiche un aperçu de l'image du pet dans la liste admin"""
+        if obj.category == 'companion' and obj.pet_image:
+            image_url = obj.get_pet_image_url()
+            return format_html(
+                '<img src="/static/{}" style="max-height: 30px; max-width: 50px;" alt="{}">',
+                image_url, obj.name
+            )
+        return "-"
+    get_pet_image_preview.short_description = 'Aperçu Image'
     
     def save_model(self, request, obj, form, change):
         # Si c'est un compagnon mais pas de permission définie, utiliser le nom

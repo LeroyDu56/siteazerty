@@ -173,7 +173,7 @@ class StoreItem(models.Model):
         ('cosmetic', 'Cosmetic'),
         ('utility', 'Utility'),
         ('special', 'Special'),
-        ('companion', 'Compagnon'),  # ✅ NOUVEAU : Catégorie pour les pets
+        ('companion', 'Compagnon'),
     ]
     
     name = models.CharField(max_length=100)
@@ -184,7 +184,15 @@ class StoreItem(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='collectible')
     quantity = models.IntegerField(default=1, help_text="Available quantity (-1 for unlimited)")
     
-    # ✅ NOUVEAU : Champ spécifique pour les pets
+    # ✅ NOUVEAU : Champ pour l'image des compagnons
+    pet_image = models.CharField(
+        max_length=255, 
+        blank=True, 
+        null=True,
+        help_text="Nom du fichier image pour les compagnons (ex: dragon.png, chat.png). L'image doit être dans static/images/pets/"
+    )
+    
+    # Champ existant pour la permission
     pet_permission = models.CharField(
         max_length=100, 
         blank=True, 
@@ -199,6 +207,12 @@ class StoreItem(models.Model):
         """Retourne la permission complète pour les pets"""
         if self.category == 'companion' and self.pet_permission:
             return f"advancedpets.pet.{self.pet_permission.lower()}"
+        return None
+    
+    def get_pet_image_url(self):
+        """Retourne l'URL complète de l'image du pet"""
+        if self.category == 'companion' and self.pet_image:
+            return f"images/pets/{self.pet_image}"
         return None
 
 class Bundle(models.Model):

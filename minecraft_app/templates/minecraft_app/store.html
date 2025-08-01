@@ -253,11 +253,24 @@
                 {% for item in store_items %}
                 <div class="treasure-card" data-category="{{ item.category }}">
                     <div class="treasure-image">
-                        {% if item.image %}
+                        {% if item.category == 'companion' and item.pet_image %}
+                            <!-- Image spéciale pour les compagnons -->
+                            <img src="{% static 'images/pets/' %}{{ item.pet_image }}" alt="{{ item.name }}" class="pet-preview-image">
+                            <!-- Bouton pour prévisualisation en grand -->
+                            <button class="pet-preview-btn" data-pet-name="{{ item.name }}" data-pet-image="{{ item.pet_image }}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        {% elif item.image %}
+                            <!-- Image normale pour les autres objets -->
                             <img src="{{ item.image }}" alt="{{ item.name }}">
                         {% else %}
+                            <!-- Placeholder par défaut -->
                             <div class="treasure-placeholder" style="background-color: {{ item.color_code }}">
-                                <i class="fas fa-gift"></i>
+                                {% if item.category == 'companion' %}
+                                    <i class="fas fa-paw"></i>
+                                {% else %}
+                                    <i class="fas fa-gift"></i>
+                                {% endif %}
                             </div>
                         {% endif %}
                     </div>
@@ -530,6 +543,103 @@ document.addEventListener('DOMContentLoaded', function() {
             particle.style.animationDelay = Math.random() * 5 + 's';
             
             particlesContainer.appendChild(particle);
+        }
+    }
+    
+    // ✅ NOUVEAU : Gestion des boutons de prévisualisation des pets
+    const petPreviewBtns = document.querySelectorAll('.pet-preview-btn');
+    
+    petPreviewBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const petName = this.getAttribute('data-pet-name');
+            const petImage = this.getAttribute('data-pet-image');
+            
+            showPetPreview(petName, petImage);
+        });
+    });
+    
+    // ✅ FONCTION : Afficher la prévisualisation du compagnon
+    function showPetPreview(petName, petImage) {
+        // Supprimer toute modal existante
+        const existingModal = document.getElementById('pet-preview-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Créer la modal
+        const modal = document.createElement('div');
+        modal.id = 'pet-preview-modal';
+        modal.className = 'pet-preview-modal';
+        
+        // Contenu de la modal
+        modal.innerHTML = `
+            <div class="pet-preview-content">
+                <div class="pet-preview-header">
+                    <h3 class="pet-preview-title">🐾 Aperçu : ${petName}</h3>
+                    <button class="pet-preview-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="pet-preview-image-container">
+                    <img src="/static/images/pets/${petImage}" 
+                         alt="${petName}" 
+                         class="pet-preview-large-image"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div style="display: none; padding: 40px; text-align: center; color: #999;">
+                        <i class="fas fa-image" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                        <p>Image non disponible</p>
+                    </div>
+                </div>
+                
+                <div class="pet-preview-info">
+                    <p><strong>Compagnon :</strong> ${petName}</p>
+                    <p><em>Ceci est un aperçu de votre futur compagnon dans le jeu !</em></p>
+                </div>
+            </div>
+        `;
+        
+        // Ajouter au DOM
+        document.body.appendChild(modal);
+        
+        // Animer l'ouverture
+        setTimeout(() => {
+            modal.classList.add('active');
+        }, 10);
+        
+        // Gestion de la fermeture
+        const closeBtn = modal.querySelector('.pet-preview-close');
+        closeBtn.addEventListener('click', () => {
+            closePetPreview();
+        });
+        
+        // Fermer en cliquant à l'extérieur
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closePetPreview();
+            }
+        });
+        
+        // Fermer avec Escape
+        document.addEventListener('keydown', function escapeHandler(e) {
+            if (e.key === 'Escape') {
+                closePetPreview();
+                document.removeEventListener('keydown', escapeHandler);
+            }
+        });
+    }
+    
+    // ✅ FONCTION : Fermer la prévisualisation
+    function closePetPreview() {
+        const modal = document.getElementById('pet-preview-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.remove();
+            }, 300);
         }
     }
     
