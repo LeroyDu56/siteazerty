@@ -35,7 +35,7 @@ from .models import (
     Bundle, BundlePurchase
 )
 from .services import fetch_minecraft_uuid, format_uuid_with_dashes
-from .minecraft_service import apply_rank_to_player, give_bundle_to_player
+from .minecraft_service import apply_rank_to_player, give_bundle_to_player, give_pet_to_player, give_store_item_to_player
 
 # Configuration Stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY

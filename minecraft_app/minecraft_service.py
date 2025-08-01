@@ -3,6 +3,7 @@ import time
 import socket
 import struct
 import re
+import json
 from contextlib import contextmanager
 from datetime import datetime
 from django.conf import settings
@@ -244,10 +245,10 @@ def apply_rank_to_player(username, rank_name, is_temporary=False, gifted_by=None
                 player_message = f'tellraw {username} ["\\n",{{"text":"🎁 CADEAU REÇU ! 🎁","color":"gold","bold":true}},{{"text":"\\n\\n"}},{{"text":"💝 {gifted_by} vous a offert:","color":"green"}},{{"text":"\\n"}},{{"text":"🏆 Grade: ","color":"white"}},{{"text":"{rank_name}{duration_text}","color":"green","bold":true}},{{"text":"\\n\\n"}},{{"text":"⚡ Attribution en cours...","color":"yellow"}},{{"text":"\\n"}},{{"text":"Si le grade n\'apparaît pas immédiatement,","color":"gray"}},{{"text":"\\n"}},{{"text":"un administrateur vous l\'attribuera sous peu.","color":"gray"}},{{"text":"\\n\\n"}},{{"text":"💎 Merci {gifted_by} ! 💎","color":"aqua","bold":true}}]'
                 
                 # Notification aux admins pour les cadeaux avec informations complètes
-                admin_notification = f'tellraw @a[permission=luckperms.user.parent.add] ["",{{"text":"\\n"}},{{"text":"🎁 [BOUTIQUE CADEAU] 🎁","color":"purple","bold":true}},{{"text":"\\n"}},{{"text":"Attribution de cadeau requise:","color":"yellow"}},{{"text":"\\n"}},{{"text":"💝 Offert par: ","color":"white"}},{{"text":"{gifted_by}","color":"gold","bold":true}},{{"text":"\\n"}},{{"text":"👤 Destinataire: ","color":"white"}},{{"text":"{username}","color":"green","bold":true}},{{"text":"\\n"}},{{"text":"🏆 Grade: ","color":"white"}},{{"text":"{rank_name}{duration_text}","color":"gold","bold":true}},{{"text":"\\n"}},{{"text":"🔧 Groupe LuckPerms: ","color":"white"}},{{"text":"{luckperms_group}","color":"aqua","bold":true}},{{"text":"\\n"}},{{"text":"💰 Achat confirmé et payé ✅","color":"green"}},{{"text":"\\n\\n"}},{{"text":"🔧 Cliquez pour attribuer: ","color":"gray"}},{{"text":"[EXÉCUTER MAINTENANT]","color":"aqua","bold":true,"underlined":true,"clickEvent":{{"action":"run_command","value":"{lp_command}"}},"hoverEvent":{{"action":"show_text","value":"Cliquez pour exécuter:\\n{lp_command}"}}}}]'
+                admin_notification = f'tellraw @a[permission=luckperms.user.parent.add] ["",{{"text":"\\n"}},{{"text":"🎁 [BOUTIQUE CADEAU] 🎁","color":"gold","bold":true}},{{"text":"\\n"}},{{"text":"Attribution de cadeau requise:","color":"yellow"}},{{"text":"\\n"}},{{"text":"💝 Offert par: ","color":"white"}},{{"text":"{gifted_by}","color":"gold","bold":true}},{{"text":"\\n"}},{{"text":"👤 Destinataire: ","color":"white"}},{{"text":"{username}","color":"green","bold":true}},{{"text":"\\n"}},{{"text":"🏆 Grade: ","color":"white"}},{{"text":"{rank_name}{duration_text}","color":"gold","bold":true}},{{"text":"\\n"}},{{"text":"🔧 Groupe LuckPerms: ","color":"white"}},{{"text":"{luckperms_group}","color":"aqua","bold":true}},{{"text":"\\n"}},{{"text":"💰 Achat confirmé et payé ✅","color":"green"}},{{"text":"\\n\\n"}},{{"text":"🔧 Cliquez pour attribuer: ","color":"gray"}},{{"text":"[EXÉCUTER MAINTENANT]","color":"aqua","bold":true,"underlined":true,"clickEvent":{{"action":"run_command","value":"{lp_command}"}},"hoverEvent":{{"action":"show_text","value":"Cliquez pour exécuter:\\n{lp_command}"}}}}]'
                 
                 # Broadcast public spécial pour les cadeaux
-                public_broadcast = f'tellraw @a ["",{{"text":"🎁 [BOUTIQUE] ","color":"purple","bold":true}},{{"text":"{gifted_by} ","color":"gold","bold":true}},{{"text":"vient d\'offrir le grade ","color":"white"}},{{"text":"{rank_name}{duration_text}","color":"green","bold":true}},{{"text":" à ","color":"white"}},{{"text":"{username}","color":"yellow","bold":true}},{{"text":" ! 🎉","color":"gold"}},{{"text":"\\n"}},{{"text":"✨ Quel beau geste ! ✨","color":"aqua"}}]'
+                public_broadcast = f'tellraw @a ["",{{"text":"🎁 [BOUTIQUE] ","color":"gold","bold":true}},{{"text":"{gifted_by} ","color":"gold","bold":true}},{{"text":"vient d\'offrir le grade ","color":"white"}},{{"text":"{rank_name}{duration_text}","color":"green","bold":true}},{{"text":" à ","color":"white"}},{{"text":"{username}","color":"yellow","bold":true}},{{"text":" ! 🎉","color":"gold"}},{{"text":"\\n"}},{{"text":"✨ Quel beau geste ! ✨","color":"aqua"}}]'
                 
             else:
                 # Messages pour les achats normaux
@@ -366,7 +367,7 @@ def send_success_messages(rcon, username, rank_name, is_temporary, gifted_by=Non
             success_message = f'tellraw {username} ["\\n",{{"text":"🎁 CADEAU REÇU ! 🎁","color":"gold","bold":true}},{{"text":"\\n\\n"}},{{"text":"✅ Attribution automatique réussie","color":"green"}},{{"text":"\\n"}},{{"text":"💝 {gifted_by} vous a offert:","color":"white"}},{{"text":"\\n"}},{{"text":"🏆 Vous avez maintenant: ","color":"white"}},{{"text":"{rank_name}{duration_text}","color":"green","bold":true}},{{"text":"\\n\\n"}},{{"text":"💎 Merci {gifted_by} ! 💎","color":"aqua","bold":true}}]'
             
             # Broadcast de cadeau SEULEMENT
-            success_broadcast = f'tellraw @a ["",{{"text":"🎁 [BOUTIQUE] ","color":"purple","bold":true}},{{"text":"{gifted_by} ","color":"gold","bold":true}},{{"text":"vient d\'offrir le grade ","color":"white"}},{{"text":"{rank_name}{duration_text}","color":"green","bold":true}},{{"text":" à ","color":"white"}},{{"text":"{username}","color":"yellow","bold":true}},{{"text":" ! 🎉","color":"gold"}},{{"text":"\\n"}},{{"text":"✨ Quel beau geste ! ✨","color":"aqua"}}]'
+            success_broadcast = f'tellraw @a ["",{{"text":"🎁 [BOUTIQUE] ","color":"gold","bold":true}},{{"text":"{gifted_by} ","color":"gold","bold":true}},{{"text":"vient d\'offrir le grade ","color":"white"}},{{"text":"{rank_name}{duration_text}","color":"green","bold":true}},{{"text":" à ","color":"white"}},{{"text":"{username}","color":"yellow","bold":true}},{{"text":" ! 🎉","color":"gold"}},{{"text":"\\n"}},{{"text":"✨ Quel beau geste ! ✨","color":"aqua"}}]'
             
             # Envoyer SEULEMENT les messages de cadeau
             try:
@@ -429,91 +430,93 @@ def send_success_messages(rcon, username, rank_name, is_temporary, gifted_by=Non
         import traceback
         logger.error(f"❌ Traceback: {traceback.format_exc()}")
 
-# Dans minecraft_app/minecraft_service.py - Ajoutez cette fonction
-
 def give_pet_to_player(username, pet_permission):
     """
     Donne une permission de pet à un joueur via LuckPerms
-    VERSION CORRIGÉE avec logs détaillés
-    
-    Args:
-        username: Le pseudo Minecraft du joueur
-        pet_permission: La permission du pet (ex: advancedpets.pet.cheval)
-    
-    Returns:
-        bool: True si la permission a été accordée avec succès
     """
     if not username or not pet_permission:
         logger.error("❌ Cannot give pet permission: Missing username or permission")
         return False
-    
+
     logger.info(f"🐾 DÉBUT Attribution de la permission pet {pet_permission} à {username}")
-    
+
     try:
         with rcon_connection() as rcon:
-            # ✅ CORRECTION 4 : Extraire le nom du pet pour les messages
-            pet_name = pet_permission.replace('advancedpets.pet.', '').title()
-            logger.info(f"🦄 Nom du pet calculé: '{pet_name}' depuis permission '{pet_permission}'")
-            
+            # Nettoyer pet_name
+            pet_name = pet_permission.replace('advancedpets.pet.', '').replace('_', ' ').title()
+            pet_name = ''.join(c for c in pet_name if c.isalnum() or c.isspace()).strip()
+            logger.info(f"🦄 Nom du pet nettoyé: '{pet_name}' depuis permission '{pet_permission}'")
+
             # Commande LuckPerms pour donner la permission
             lp_command = f"lp user {username} permission set {pet_permission} true"
-            
             logger.info(f"🔧 Commande LuckPerms pet: {lp_command}")
+
             try:
                 lp_response = rcon.command(lp_command)
                 logger.info(f"📝 Réponse LuckPerms pet: '{lp_response}'")
-                
+
                 # Attendre un peu pour que LuckPerms traite la commande
                 time.sleep(1)
-                
-                # ✅ CORRECTION 5 : Messages corrigés avec variables correctes
+
+                # Message personnel
                 success_message = f'tellraw {username} ["",{{"text":"🐾 COMPAGNON DÉBLOQUÉ ! 🐾","color":"gold","bold":true}},{{"text":"\\n\\n"}},{{"text":"✅ Nouveau compagnon disponible:","color":"green"}},{{"text":"\\n"}},{{"text":"🦄 {pet_name}","color":"yellow","bold":true}},{{"text":"\\n\\n"}},{{"text":"💡 Utilisez /pets pour l\'équiper !","color":"aqua"}},{{"text":"\\n"}},{{"text":"🎉 Amusez-vous bien ! 🎉","color":"green","bold":true}}]'
-                
                 logger.info(f"📢 Envoi message personnel à {username}")
                 rcon.command(success_message)
-                
-                # Broadcast public
-                public_message = f'tellraw @a ["",{{"text":"🐾 [BOUTIQUE] ","color":"purple","bold":true}},{{"text":"{username} ","color":"yellow","bold":true}},{{"text":"vient d\'adopter un ","color":"white"}},{{"text":"{pet_name}","color":"green","bold":true}},{{"text":" ! 🎉","color":"gold"}}]'
-                
-                logger.info("📢 Envoi broadcast public")
-                rcon.command(public_message)
-                
+                time.sleep(2.0)  # Délai avant le broadcast
+
+                # Broadcast public avec débogage
+                try:
+                    # Construire chaque partie du JSON
+                    prefix = json.dumps({"text": "🐾 [BOUTIQUE] ", "color": "gold", "bold": True})
+                    username_part = json.dumps({"text": username, "color": "yellow"})
+                    adopter_part = json.dumps({"text": " vient d'adopter un ", "color": "white"})
+                    pet_part = json.dumps({"text": pet_name, "color": "green", "bold": True})
+                    suffix = json.dumps({"text": " ! 🎉", "color": "gold"})
+
+                    # Assembler la commande tellraw
+                    public_message = f'tellraw @a ["",{prefix},{username_part},{adopter_part},{pet_part},{suffix}]'
+                    logger.info(f"📢 Commande broadcast public: '{public_message}'")
+                    response = rcon.command(public_message)
+                    logger.info(f"📢 Réponse RCON pour broadcast: '{response}'")
+                    time.sleep(0.5)  # Délai après le broadcast
+                    if not response or "invalid" in response.lower() or "error" in response.lower():
+                        logger.error(f"❌ Broadcast rejeté: Réponse = '{response}'")
+                        admin_notification = f'tellraw @a[permission=luckperms.user.parent.add] ["",{{"text":"⚠️ ÉCHEC BROADCAST PET","color":"red","bold":true}},{{"text":"\\n"}},{{"text":"Joueur: {username}","color":"white"}},{{"text":"\\n"}},{{"text":"Pet: {pet_name}","color":"gold"}},{{"text":"\\n"}},{{"text":"Erreur: {response}","color":"yellow"}}]'
+                        rcon.command(admin_notification)
+                        logger.info("✅ Notification admin envoyée pour échec broadcast")
+                    else:
+                        logger.info("✅ Broadcast public envoyé")
+                except Exception as e:
+                    logger.error(f"❌ Erreur broadcast public: {str(e)}")
+                    admin_notification = f'tellraw @a[permission=luckperms.user.parent.add] ["",{{"text":"⚠️ ÉCHEC BROADCAST PET","color":"red","bold":true}},{{"text":"\\n"}},{{"text":"Joueur: {username}","color":"white"}},{{"text":"\\n"}},{{"text":"Pet: {pet_name}","color":"gold"}},{{"text":"\\n"}},{{"text":"Broadcast public non envoyé","color":"yellow"}}]'
+                    rcon.command(admin_notification)
+                    logger.info("✅ Notification admin envoyée pour échec broadcast")
+
                 # Son de célébration
                 try:
                     pet_sound = f"execute at {username} run playsound minecraft:entity.cat.purr master {username} ~ ~ ~ 1 1.5"
                     rcon.command(pet_sound)
-                    
                     global_sound = "playsound minecraft:entity.experience_orb.pickup master @a ~ ~ ~ 0.2 1.8"
                     rcon.command(global_sound)
-                    
                     logger.info("🔊 Sons de pet joués")
                 except Exception as sound_error:
                     logger.warning(f"⚠️ Sons de pet non joués: {sound_error}")
-                
+
                 logger.info(f"✅ Permission pet {pet_permission} attribuée avec succès à {username}")
                 return True
-                
+
             except Exception as e:
                 logger.warning(f"⚠️ Commande LuckPerms pet échouée: {e}")
-                
-                # ✅ CORRECTION 6 : Mode admin avec variables corrigées
-                admin_notification = f'tellraw @a[permission=luckperms.user.permission.set] ["",{{"text":"\\n"}},{{"text":"🐾 [COMPAGNON ADMIN] 🐾","color":"purple","bold":true}},{{"text":"\\n"}},{{"text":"Attribution de pet requise:","color":"yellow"}},{{"text":"\\n"}},{{"text":"👤 Joueur: ","color":"white"}},{{"text":"{username}","color":"green","bold":true}},{{"text":"\\n"}},{{"text":"🦄 Pet: ","color":"white"}},{{"text":"{pet_name}","color":"purple","bold":true}},{{"text":"\\n"}},{{"text":"🔧 Permission: ","color":"white"}},{{"text":"{pet_permission}","color":"aqua"}},{{"text":"\\n"}},{{"text":"💰 Achat payé et confirmé ✅","color":"green"}},{{"text":"\\n\\n"}},{{"text":"🔧 Cliquez pour attribuer: ","color":"gray"}},{{"text":"[EXÉCUTER MAINTENANT]","color":"aqua","bold":true,"underlined":true,"clickEvent":{{"action":"run_command","value":"{lp_command}"}},"hoverEvent":{{"action":"show_text","value":"Cliquez pour exécuter:\\n{lp_command}"}}}}]'
-                
+                admin_notification = f'tellraw @a[permission=luckperms.user.permission.set] ["",{{"text":"\\n"}},{{"text":"🐾 [COMPAGNON ADMIN] 🐾","color":"gold","bold":true}},{{"text":"\\n"}},{{"text":"Attribution de pet requise:","color":"yellow"}},{{"text":"\\n"}},{{"text":"👤 Joueur: ","color":"white"}},{{"text":"{username}","color":"green","bold":true}},{{"text":"\\n"}},{{"text":"🦄 Pet: ","color":"white"}},{{"text":"{pet_name}","color":"gold","bold":true}},{{"text":"\\n"}},{{"text":"🔧 Permission: ","color":"white"}},{{"text":"{pet_permission}","color":"aqua"}},{{"text":"\\n"}},{{"text":"💰 Achat payé et confirmé ✅","color":"green"}},{{"text":"\\n\\n"}},{{"text":"🔧 Cliquez pour attribuer: ","color":"gray"}},{{"text":"[EXÉCUTER MAINTENANT]","color":"aqua","bold":true,"underlined":true,"clickEvent":{{"action":"run_command","value":"{lp_command}"}},"hoverEvent":{{"action":"show_text","value":"Cliquez pour exécuter:\\n{lp_command}"}}}}]'
                 logger.info("📢 Envoi notification admin pet")
                 rcon.command(admin_notification)
-                
-                # Message au joueur en cas d'échec de l'attribution automatique
                 fallback_msg = f'tellraw {username} ["",{{"text":"🐾 COMPAGNON ACHETÉ ! 🐾","color":"gold","bold":true}},{{"text":"\\n"}},{{"text":"Votre {pet_name} a été acheté mais","color":"yellow"}},{{"text":"\\n"}},{{"text":"l\'attribution nécessite une intervention.","color":"yellow"}},{{"text":"\\n"}},{{"text":"Un admin va vous aider !","color":"green"}},{{"text":"\\n"}},{{"text":"Merci pour votre patience 💙","color":"aqua"}}]'
-                
                 rcon.command(fallback_msg)
                 logger.info("📢 Message de fallback envoyé au joueur")
-                
-                return True  # On considère ça comme un succès car l'admin peut faire l'attribution
-                
+                return True
+
     except Exception as e:
         logger.error(f"❌ Erreur critique lors de l'attribution du pet: {str(e)}")
-        
-        # Message de fallback d'urgence
         try:
             with rcon_connection() as rcon:
                 emergency_message = f'tellraw {username} ["",{{"text":"⚠️ COMPAGNON ACHETÉ ⚠️","color":"gold","bold":true}},{{"text":"\\n"}},{{"text":"Votre compagnon a été acheté mais","color":"yellow"}},{{"text":"\\n"}},{{"text":"l\'attribution nécessite une intervention.","color":"yellow"}},{{"text":"\\n"}},{{"text":"Un admin va vous aider !","color":"green"}},{{"text":"\\n"}},{{"text":"Merci pour votre patience 💙","color":"aqua"}}]'
@@ -521,7 +524,6 @@ def give_pet_to_player(username, pet_permission):
                 logger.info("🚨 Message d'urgence envoyé")
         except:
             logger.error("❌ Impossible d'envoyer le message de fallback pet")
-        
         return False
 
 def give_store_item_to_player(username, item_name, quantity=1, store_item=None):
@@ -596,11 +598,11 @@ def give_store_item_to_player(username, item_name, quantity=1, store_item=None):
         with rcon_connection() as rcon:
             # Traitement spécial pour les têtes personnalisées
             if item_name == 'Tête de joueur':
-                head_notification = f'tellraw @a[permission=minecraft.command.give] ["",{{"text":"🎭 [BOUTIQUE ADMIN] 🎭","color":"purple","bold":true}},{{"text":"\\n"}},{{"text":"Tête personnalisée achetée:","color":"yellow"}},{{"text":"\\n"}},{{"text":"👤 Joueur: ","color":"white"}},{{"text":"{username}","color":"green","bold":true}},{{"text":"\\n"}},{{"text":"Quantité: ","color":"white"}},{{"text":"{quantity}","color":"gold"}},{{"text":"\\n"}},{{"text":"💰 Payé et confirmé ✅","color":"green"}}]'
+                head_notification = f'tellraw @a[permission=minecraft.command.give] ["",{{"text":"🎭 [BOUTIQUE ADMIN] 🎭","color":"gold","bold":true}},{{"text":"\\n"}},{{"text":"Tête personnalisée achetée:","color":"yellow"}},{{"text":"\\n"}},{{"text":"👤 Joueur: ","color":"white"}},{{"text":"{username}","color":"green","bold":true}},{{"text":"\\n"}},{{"text":"Quantité: ","color":"white"}},{{"text":"{quantity}","color":"gold"}},{{"text":"\\n"}},{{"text":"💰 Payé et confirmé ✅","color":"green"}}]'
                 
                 rcon.command(head_notification)
                 
-                player_msg = f'tellraw {username} ["",{{"text":"🎭 TÊTE PERSONNALISÉE !","color":"purple","bold":true}},{{"text":"\\n"}},{{"text":"Votre achat est confirmé !","color":"green"}},{{"text":"\\n"}},{{"text":"Un administrateur vous contactera","color":"white"}},{{"text":"\\n"}},{{"text":"pour personnaliser votre tête.","color":"white"}},{{"text":"\\n\\n"}},{{"text":"🎨 Préparez votre design ! 🎨","color":"aqua","bold":true}}]'
+                player_msg = f'tellraw {username} ["",{{"text":"🎭 TÊTE PERSONNALISÉE !","color":"gold","bold":true}},{{"text":"\\n"}},{{"text":"Votre achat est confirmé !","color":"green"}},{{"text":"\\n"}},{{"text":"Un administrateur vous contactera","color":"white"}},{{"text":"\\n"}},{{"text":"pour personnaliser votre tête.","color":"white"}},{{"text":"\\n\\n"}},{{"text":"🎨 Préparez votre design ! 🎨","color":"aqua","bold":true}}]'
                 
                 rcon.command(player_msg)
                 logger.info("✅ Tête personnalisée - notifications envoyées")
@@ -1099,7 +1101,7 @@ def give_bundle_to_player(username, bundle):
                 rcon.command(success_msg)
                 
                 # Broadcast pour le bundle
-                bundle_broadcast = f'tellraw @a ["",{{"text":"🎁 [BOUTIQUE] ","color":"purple","bold":true}},{{"text":"{username} ","color":"yellow"}},{{"text":"vient d\'ouvrir le ","color":"white"}},{{"text":"{bundle.name}","color":"gold","bold":true}},{{"text":" ! 🎉","color":"gold"}}]'
+                bundle_broadcast = f'tellraw @a ["",{{"text":"🎁 [BOUTIQUE] ","color":"gold","bold":true}},{{"text":"{username} ","color":"yellow"}},{{"text":"vient d\'ouvrir le ","color":"white"}},{{"text":"{bundle.name}","color":"gold","bold":true}},{{"text":" ! 🎉","color":"gold"}}]'
                 rcon.command(bundle_broadcast)
                 
                 # Son de succès du bundle - CORRIGÉ (plus de spam)
